@@ -2,7 +2,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <application
+        android:name=".Login.MyApplication"
         android:allowBackup="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
@@ -22,8 +25,27 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".Login.LoginActivity" />
-        <activity android:name=".MainActivity"/>
+        <meta-data
+            android:name="com.kakao.sdk.AppKey"
+            android:value="df9232490a875236c226c0fc6a68a692" />
+
+        <activity
+            android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.VIEW" />
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data
+                    android:host="oauth"
+                    android:scheme="@string/scheme_kakao_app_key" />
+            </intent-filter>
+        </activity>
+
+        <activity android:name=".Login.LoginActivity"
+            android:exported="true" />
+        <activity android:name=".MainActivity"
+            android:exported="true" />
 
     </application>
 
