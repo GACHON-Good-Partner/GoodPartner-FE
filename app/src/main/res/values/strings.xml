@@ -5,7 +5,7 @@
     <string name="title_notifications">마이페이지</string>
     <string name="app_logo">앱 로고</string>
     <string name="kakao_login">카카오 로그인</string>
-    <string name="kakao_app_key">df9232490a875236c226c0fc6a68a692</string>
-    <string name="scheme_kakao_app_key">kakaodf9232490a875236c226c0fc6a68a692</string>
+    <string name="kakao_app_key">d521ed5922c3c12012e88888ca20083b</string>
+    <string name="scheme_kakao_app_key">kakaod521ed5922c3c12012e88888ca20083b</string>
 
 </resources>

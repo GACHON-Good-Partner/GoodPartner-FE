@@ -19,7 +19,7 @@
         app:layout_constraintEnd_toEndOf="parent">
 
         <ImageView
-            android:id="@+id/back_button"
+            android:id="@+id/chat_back_button"
             android:layout_width="9dp"
             android:layout_height="18dp"
             android:layout_marginTop="17dp"
@@ -28,12 +28,12 @@
             android:contentDescription="뒤로가기 버튼" />
 
         <ImageView
-            android:id="@+id/logo"
+            android:id="@+id/chat_logo"
             android:layout_width="45dp"
             android:layout_height="45dp"
             android:layout_marginStart="18dp"
             android:layout_marginTop="4dp"
-            android:src="@drawable/logo2"
+            android:src="@drawable/chat_logo"
             android:contentDescription="로고" />
 
         <LinearLayout
@@ -76,13 +76,13 @@
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:src="@drawable/kakaologin"/>
+            android:src="@drawable/chat_logo_big"/>
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="버비톡에 문의하기"
-            android:layout_marginTop="25dp"
+            android:layout_marginTop="15dp"
             android:textSize="15sp"
             android:textColor="@color/black"/>
 
@@ -107,11 +107,16 @@
     <!-- 입력 창 -->
     <LinearLayout
         android:id="@+id/chat_input_layout"
+        xmlns:android="http://schemas.android.com/apk/res/android"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:background="@color/light_gray"
-        android:padding="8dp"
+        android:layout_marginStart="15dp"
+        android:layout_marginEnd="15dp"
+        android:padding="0dp"
+        android:layout_marginBottom="13dp"
+        android:background="@drawable/oval_background"
+        android:gravity="center"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
@@ -121,8 +126,9 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
+            android:layout_marginStart="25dp"
             android:hint="메세지를 입력하세요"
-            android:background="@drawable/input_background"
+            android:background="#C7EAF7"
             android:padding="12dp"
             android:textSize="14sp"
             android:imeOptions="actionSend"
@@ -133,7 +139,8 @@
             android:layout_width="48dp"
             android:layout_height="48dp"
             android:layout_marginStart="8dp"
-            android:src="@drawable/logo2"
+            android:layout_marginEnd="5dp"
+            android:src="@drawable/enter_ic"
             android:background="@android:color/transparent"
             android:contentDescription="메세지 보내기" />
     </LinearLayout>

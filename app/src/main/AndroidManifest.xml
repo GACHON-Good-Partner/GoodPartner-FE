@@ -27,7 +27,7 @@
 
         <meta-data
             android:name="com.kakao.sdk.AppKey"
-            android:value="df9232490a875236c226c0fc6a68a692" />
+            android:value="d521ed5922c3c12012e88888ca20083b" />
 
         <activity
             android:name="com.kakao.sdk.auth.AuthCodeHandlerActivity"
