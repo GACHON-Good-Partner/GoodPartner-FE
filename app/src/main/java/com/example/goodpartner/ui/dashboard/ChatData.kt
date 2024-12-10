@@ -1,5 +1,7 @@
 package com.example.goodpartner.ui.dashboard
 
+import com.google.gson.annotations.SerializedName
+
 // 메시지 전송 요청
 data class ChatRequest(
     val message: String // 메시지 내용
@@ -21,13 +23,14 @@ data class ChatApiResponse(
 
 // 메시지 데이터 구조
 data class ChatResponse(
-    val id: Long, // 메시지 ID
-    val userId: String?, // 사용자 ID
-    val message: String, // 메시지 내용
-    val status: String?, // 상태 (REQUEST 또는 RESPONSE)
-    val createdAt: String?, // 생성 시간
-    val updatedAt: String? // 수정 시간
+    @SerializedName("id") val id: Long,
+    @SerializedName("userId") val userId: String,
+    @SerializedName("message") val message: String,
+    @SerializedName("status") val status: String,
+    @SerializedName("createdAt") val createdAt: String?,
+    @SerializedName("updatedAt") val updatedAt: String?
 )
+
 
 // 누적 질문 수 응답
 data class QuestionCountResponse(
