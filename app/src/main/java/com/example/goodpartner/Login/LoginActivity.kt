@@ -237,7 +237,7 @@ class LoginActivity : AppCompatActivity() {
         val editor = sharedPreferences.edit()
         editor.putString("accessToken", accessToken)
         editor.apply()
-        Log.i("LoginActivity", "Access Token 저장 완료")
+        Log.i("LoginActivity", "Access Token 저장 완료 : $accessToken")
     }
 
 

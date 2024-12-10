@@ -92,6 +92,8 @@
     </LinearLayout>
 
     <!-- 채팅 RecyclerView -->
+
+    <!-- 입력 창 -->
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/chat_recycler_view"
         android:layout_width="match_parent"
@@ -99,12 +101,14 @@
         android:clipToPadding="false"
         android:padding="8dp"
         android:scrollbars="none"
-        app:layout_constraintTop_toBottomOf="@id/mid_bar"
         app:layout_constraintBottom_toTopOf="@id/chat_input_layout"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintTop_toBottomOf="@id/mid_bar"
+        app:layout_constraintVertical_bias="0.0"
+        tools:listitem="@layout/chat_item"/>
 
-    <!-- 입력 창 -->
     <LinearLayout
         android:id="@+id/chat_input_layout"
         xmlns:android="http://schemas.android.com/apk/res/android"

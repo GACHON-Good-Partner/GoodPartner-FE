@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:padding="8dp">
+
+    <!-- 서버 메시지 -->
+    <LinearLayout
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="8dp">
+
+        <!-- 서버 메시지 레이아웃 -->
+        <LinearLayout
+            android:id="@+id/server_message_layout"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:visibility="visible"
+            android:padding="4dp">
+
+            <!-- 서버 프로필 이미지 -->
+            <ImageView
+                android:id="@+id/profile_image"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginEnd="8dp"
+                android:src="@drawable/chat_profile_ic"
+                android:contentDescription="프로필 이미지" />
+
+            <!-- 서버 메시지와 시간 -->
+            <LinearLayout
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="vertical">
+
+                <!-- 서버 메시지 -->
+                <TextView
+                    android:id="@+id/chat_message"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:background="@drawable/chat_bubble_background"
+                    android:padding="12dp"
+                    android:textSize="14sp"
+                    android:textColor="@android:color/black"
+                    android:maxWidth="250dp" />
+
+                <!-- 서버 메시지 시간 -->
+                <TextView
+                    android:id="@+id/chat_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="4dp"
+                    android:text="오전 7:40"
+                    android:textSize="12sp"
+                    android:textColor="@color/gray" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- 사용자 메시지 레이아웃 -->
+        <LinearLayout
+            android:id="@+id/user_message_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:gravity="end"
+            android:visibility="gone"
+            android:padding="4dp">
+
+            <!-- 사용자 메시지 -->
+            <TextView
+                android:id="@+id/user_chat_message"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/user_chat_bubble_background"
+                android:padding="12dp"
+                android:textSize="14sp"
+                android:textColor="@android:color/black"
+                android:maxWidth="250dp" />
+
+            <!-- 사용자 메시지 시간 -->
+            <TextView
+                android:id="@+id/user_chat_time"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:text="오전 7:40"
+                android:textSize="12sp"
+                android:textColor="@color/gray" />
+        </LinearLayout>
+    </LinearLayout>
+
+
+</LinearLayout>
+
