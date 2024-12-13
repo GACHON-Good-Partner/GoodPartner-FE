@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
 <shape xmlns:android="http://schemas.android.com/apk/res/android">
-    <solid android:color="#C7EAF7" /> <!-- 메시지 박스 색 -->
+    <gradient
+        android:startColor="#191919"
+        android:endColor="#FFFFFF"
+        android:angle="270" /> <!-- 위에서 아래로 -->
     <corners android:radius="16dp" /> <!-- 둥근 모서리 -->
 </shape>

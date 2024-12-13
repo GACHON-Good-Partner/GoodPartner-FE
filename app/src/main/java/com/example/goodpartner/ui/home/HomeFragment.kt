@@ -46,7 +46,7 @@ class HomeFragment : Fragment() {
 
     private fun setupRetrofit() {
         val retrofit = Retrofit.Builder()
-            .baseUrl("https://your-backend-url/") // 서버 URL
+            .baseUrl("https://13.209.81.42.nip.io/") // 서버 URL
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 

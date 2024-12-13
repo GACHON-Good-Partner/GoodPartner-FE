@@ -9,8 +9,11 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.goodpartner.R
 import com.example.goodpartner.databinding.FragmentMypageBinding
+import com.example.goodpartner.ui.dashboard.ChatFragment
+import com.example.goodpartner.ui.dashboard.ChatResponse
 import okhttp3.*
 import org.json.JSONObject
 import java.io.IOException
@@ -32,6 +35,9 @@ class MyPageFragment : Fragment() {
 
         // 사용자 정보를 가져와 UI에 반영
         fetchUserInfo()
+
+        // 최근 질문 로드
+        fetchRecentQuestions()
 
         binding.btnProfileChange.setOnClickListener {
             navigateToMyPageUDFragment()
@@ -143,6 +149,118 @@ class MyPageFragment : Fragment() {
             }
         })
     }
+
+    private fun fetchRecentQuestions() {
+        val accessToken = requireContext()
+            .getSharedPreferences("AppPreferences", Context.MODE_PRIVATE)
+            .getString("accessToken", null)
+
+        if (accessToken.isNullOrEmpty()) {
+            Toast.makeText(requireContext(), "로그인이 필요합니다.", Toast.LENGTH_SHORT).show()
+            Log.w("MyPageFragment", "Access Token이 없습니다. 로그인이 필요합니다.")
+            return
+        }
+
+        val url = "https://13.209.81.42.nip.io/chats/latest"
+        val client = OkHttpClient.Builder()
+            .connectTimeout(10, TimeUnit.SECONDS)
+            .writeTimeout(10, TimeUnit.SECONDS)
+            .readTimeout(10, TimeUnit.SECONDS)
+            .build()
+
+        val request = Request.Builder()
+            .url(url)
+            .addHeader("Authorization", "Bearer $accessToken")
+            .build()
+
+        client.newCall(request).enqueue(object : Callback {
+
+            override fun onFailure(call: Call, e: IOException) {
+                Log.e("MyPageFragment", "서버 요청 실패: ${e.localizedMessage}")
+                requireActivity().runOnUiThread {
+                    Toast.makeText(requireContext(), "서버 요청에 실패했습니다. 네트워크 상태를 확인해주세요.", Toast.LENGTH_SHORT).show()
+                }
+            }
+
+            override fun onResponse(call: Call, response: Response) {
+                val responseBody = response.body?.string()
+                Log.i("MyPageFragment", "서버 응답: $responseBody")
+
+                if (response.isSuccessful && responseBody != null) {
+                    try {
+                        val jsonObject = JSONObject(responseBody)
+                        val code = jsonObject.optInt("code")
+                        val data = jsonObject.optJSONArray("data")
+
+                        if (code == 200 && data != null) {
+                            val recentQuestions = mutableListOf<ChatResponse>()
+                            for (i in 0 until data.length()) {
+                                val item = data.getJSONObject(i)
+                                recentQuestions.add(
+                                    ChatResponse(
+                                        chatId = item.optLong("id"),
+                                        userId = item.optString("userId"),
+                                        message = item.optString("message"),
+                                        status = item.optString("status"),
+                                        createdAt = item.optString("createdAt"),
+                                        updatedAt = item.optString("updatedAt"),
+                                        keywordResponses = null // 키워드 응답 없음
+                                    )
+                                )
+                            }
+
+                            requireActivity().runOnUiThread {
+                                // RecyclerView에 데이터 바인딩
+                                val adapter = RecentQuestionsAdapter(recentQuestions) { chatResponse ->
+                                    navigateToChatFragment(chatResponse.chatId) // 클릭 시 이동 처리
+                                }
+                                binding.recentQuestionsRecyclerView.apply {
+                                    this.adapter = adapter
+                                    this.layoutManager = LinearLayoutManager(context)
+                                }
+                            }
+
+                            Log.d("MyPageFragment", "최근 질문 개수: ${recentQuestions.size}")
+                            recentQuestions.forEach { question ->
+                                Log.d("MyPageFragment", "질문 내용: ${question.message}")
+                            }
+
+                        } else {
+                            Log.e("MyPageFragment", "최근 질문 조회 실패")
+                            requireActivity().runOnUiThread {
+                                Toast.makeText(requireContext(), "최근 질문 조회에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Log.e("MyPageFragment", "JSON 파싱 오류: ${e.localizedMessage}")
+                        requireActivity().runOnUiThread {
+                            Toast.makeText(requireContext(), "서버 응답 처리 중 오류가 발생했습니다.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                } else {
+                    Log.e("MyPageFragment", "서버 응답 실패: 코드(${response.code}), 메시지(${response.message})")
+                    requireActivity().runOnUiThread {
+                        Toast.makeText(requireContext(), "서버 응답에 실패했습니다.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+        })
+    }
+
+    private fun navigateToChatFragment(chatId: Long) {
+        val fragment = ChatFragment().apply {
+            arguments = Bundle().apply {
+                putLong("chatId", chatId)
+            }
+        }
+
+        requireActivity().supportFragmentManager.beginTransaction()
+            .replace(R.id.nav_host_fragment_activity_main, fragment)
+            .addToBackStack(null)
+            .commit()
+    }
+
+
 
     /**
      * Fragment의 View가 파괴될 때 바인딩 리소스를 정리하는 메서드

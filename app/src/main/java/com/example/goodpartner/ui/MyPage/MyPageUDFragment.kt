@@ -6,6 +6,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.navigation.fragment.findNavController
@@ -43,7 +44,9 @@ class MyPageUDFragment : Fragment() {
 
         // 수정 버튼 클릭 이벤트
         binding.btnProfileChange2.setOnClickListener {
+            hideKeyboard() // 키보드 숨기기
             updateUserProfile()
+
         }
 
         // 뒤로가기 버튼 설정
@@ -180,6 +183,13 @@ class MyPageUDFragment : Fragment() {
             }
         })
     }
+
+    private fun hideKeyboard() {
+        val imm = requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
+        val view = requireActivity().currentFocus ?: View(requireContext())
+        imm.hideSoftInputFromWindow(view.windowToken, 0)
+    }
+
 
     override fun onDestroyView() {
         super.onDestroyView()

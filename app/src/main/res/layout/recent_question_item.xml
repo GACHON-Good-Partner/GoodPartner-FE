@@ -1,0 +1,26 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:layout_marginBottom="10dp"
+    android:background="@drawable/item_background_selector"
+    android:padding="8dp">
+
+    <TextView
+        android:id="@+id/questionTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="질문 내용"
+        android:textSize="16sp"
+        android:textColor="@android:color/black"
+        android:padding="4dp" />
+
+    <TextView
+        android:id="@+id/createdAtTextView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="작성 시간"
+        android:textSize="12sp"
+        android:textColor="@android:color/darker_gray"
+        android:padding="4dp" />
+</LinearLayout>

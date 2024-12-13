@@ -23,13 +23,20 @@ data class ChatApiResponse(
 
 // 메시지 데이터 구조
 data class ChatResponse(
-    @SerializedName("id") val id: Long,
-    @SerializedName("userId") val userId: String,
-    @SerializedName("message") val message: String,
-    @SerializedName("status") val status: String,
-    @SerializedName("createdAt") val createdAt: String?,
-    @SerializedName("updatedAt") val updatedAt: String?
+    val chatId: Long,
+    val userId: String,
+    val message: String,
+    val status: String,
+    val createdAt: String?,
+    val updatedAt: String?,
+    val keywordResponses: List<KeywordResponse>? // 키워드 리스트 추가
 )
+
+data class KeywordResponse(
+    val keyWord: String, // 키워드 이름
+    val url: String // 키워드에 연결된 URL
+)
+
 
 
 // 누적 질문 수 응답
@@ -38,3 +45,4 @@ data class QuestionCountResponse(
     val message: String,
     val data: Int // 누적 질문 수
 )
+

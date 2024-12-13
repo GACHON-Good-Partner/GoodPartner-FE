@@ -7,6 +7,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.InputMethodManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
@@ -34,7 +35,7 @@ class ChatFragment : Fragment() {
     private lateinit var chatAdapter: ChatAdapter
     private lateinit var chatApi: ChatApiService
 
-    private var lastMessageId: Long? = null // 마지막 메시지 ID 저장
+    private var currentChatId: Long? = null // 현재 질문에 대한 chatId
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -47,9 +48,11 @@ class ChatFragment : Fragment() {
         // 네비게이션바 숨기기
         activity?.findViewById<BottomNavigationView>(R.id.nav_view)?.visibility = View.GONE
 
+        // 토큰 유효성 검사
+        validateToken()
+
         // 뒤로가기 버튼 설정
         binding.chatBackButton.setOnClickListener {
-            // 네비게이션 바 표시
             activity?.findViewById<BottomNavigationView>(R.id.nav_view)?.visibility = View.VISIBLE
             activity?.onBackPressed()
         }
@@ -60,11 +63,17 @@ class ChatFragment : Fragment() {
         // Retrofit 초기화
         setupRetrofit()
 
-        // 새로운 채팅 세션 시작
-        startNewChatSession()
+        // 기존 채팅 내역 로드
+        loadChatHistory()
 
         // 메시지 전송 버튼 초기화
         setupSendButton()
+
+        val chatId = arguments?.getLong("chatId", -1) ?: -1
+        if (chatId != -1L) {
+            Log.d("ChatFragment", "전달받은 chatId: $chatId")
+            loadChatById(chatId) // 특정 chatId에 해당하는 데이터를 로드
+        }
 
         return root
     }
@@ -80,30 +89,19 @@ class ChatFragment : Fragment() {
         }
     }
 
-
-
     /**
      * Retrofit 초기화
      */
     private fun setupRetrofit() {
         val client = OkHttpClient.Builder()
-            .addInterceptor { chain ->
-                val request = chain.request().newBuilder()
-                    .header("Cache-Control", "no-cache")
-                    .header("Pragma", "no-cache")
-                    .build()
-                chain.proceed(request)
-            }
-            .addInterceptor(RetryInterceptor(3, 1000)) // 재시도 인터셉터 추가
+            .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS) // 서버 연결 타임아웃
+            .readTimeout(30, java.util.concurrent.TimeUnit.SECONDS)    // 응답 읽기 타임아웃
+            .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)   // 요청 쓰기 타임아웃
             .build()
 
-        val gson = GsonBuilder()
-            .serializeNulls()
-            .setLenient() // 서버의 약간 불완전한 JSON 처리 허용
-            .create()
-
+        val gson = GsonBuilder().serializeNulls().setLenient().create()
         val retrofit = Retrofit.Builder()
-            .baseUrl("https://13.209.81.42.nip.io/") // 서버 URL
+            .baseUrl("https://13.209.81.42.nip.io/")
             .client(client)
             .addConverterFactory(GsonConverterFactory.create(gson))
             .build()
@@ -112,86 +110,25 @@ class ChatFragment : Fragment() {
     }
 
     /**
-     * 새로운 채팅 세션 시작
+     * 토큰 유효성 검사: 토큰이 없거나 유효하지 않을 경우 로그인 화면으로 이동
      */
-    private fun startNewChatSession() {
-        // 채팅 목록 초기화
-        chatList.clear()
-        chatAdapter.notifyDataSetChanged()
-
-        // 새로운 메시지 ID를 저장하지 않음 (새로운 세션)
-        lastMessageId = null
-
-        Log.d("ChatFragment", "새로운 채팅 세션이 시작되었습니다.")
-    }
-
-    /**
-     * 메시지 전송 버튼 클릭 리스너
-     */
-    private fun setupSendButton() {
-        binding.sendButton.setOnClickListener {
-            val message = binding.messageInput.text.toString().trim()
-            if (message.isEmpty()) {
-                Toast.makeText(requireContext(), "메시지를 입력하세요", Toast.LENGTH_SHORT).show()
-                return@setOnClickListener
-            }
-            sendMessage(message)
+    private fun validateToken() {
+        val token = getAccessToken()
+        if (token.isNullOrEmpty()) {
+            Log.e("ChatFragment", "토큰이 없습니다.")
+            handleInvalidToken()
+            return
         }
-    }
 
-    /**
-     * 서버로 메시지 전송
-     */
-    private fun sendMessage(message: String, retryCount: Int = 0) {
-        val token = getAccessToken() ?: return
+        Log.d("ChatFragment", "유효한 토큰 확인: Bearer $token")
 
-        // 요청 데이터와 토큰 확인 로그
-        Log.d("ChatFragment", "전송할 메시지: $message")
-        Log.d("ChatFragment", "Authorization 토큰: Bearer $token")
-
-        val request = ChatRequest(message)
-        chatApi.postChatMessage("Bearer $token", message).enqueue(object : Callback<ChatApiResponse> {
-            override fun onResponse(call: Call<ChatApiResponse>, response: Response<ChatApiResponse>) {
-                if (response.isSuccessful) {
-                    val apiResponse = response.body()
-                    if (apiResponse?.data != null) {
-                        val chatResponse = apiResponse.data
-                        Log.d("ChatFragment", "서버 응답 성공: $chatResponse")
-
-                        // 새로운 메시지를 UI에 추가
-                        val userChat = ChatItem(message, "user", chatResponse.createdAt ?: "시간 없음")
-                        val serverChat = ChatItem(chatResponse.message, "server", chatResponse.createdAt ?: "시간 없음")
-
-                        // 최신 메시지 ID 갱신
-                        lastMessageId = chatResponse.id
-                        Log.d("ChatFragment", "최신 메시지 ID 갱신: $lastMessageId")
-                        Log.d("ChatFragment", "서버 응답 본문: ${response.body()}")
-
-                        updateChatUi(userChat, serverChat)
-                    } else {
-                        Log.e("ChatFragment", "서버 응답 성공: 하지만 데이터가 없습니다.")
-                    }
-                }
-                else if (response.code() == 401) {
-                    // 토큰이 유효하지 않을 경우
-                    Log.e("ChatFragment", "토큰이 유효하지 않습니다. 자동 로그아웃 처리.")
-                    handleInvalidToken() // 로그아웃 처리
-                } else {
-                    val errorBody = response.errorBody()?.string()
-                    Log.e("ChatFragment", "메시지 전송 실패: 코드=${response.code()}, 메시지=${response.message()}, 에러 본문=$errorBody")
-                }
-            }
-
-            override fun onFailure(call: Call<ChatApiResponse>, t: Throwable) {
-                if (retryCount < 3) {
-                    Log.w("ChatFragment", "메시지 전송 실패, 재시도: ${retryCount + 1}회")
-                    sendMessage(message, retryCount + 1) // 재귀 호출로 재시도
-                } else {
-                    Log.e("ChatFragment", "메시지 전송 실패, 재시도 횟수 초과", t)
-                    Toast.makeText(requireContext(), "메시지 전송에 실패했습니다. 네트워크 상태를 확인해주세요.", Toast.LENGTH_SHORT).show()
-                }
-            }
-        })
+        // 간단한 유효성 확인 (예: 토큰 길이 또는 서버 호출)
+        if (token.length < 20) { // 기본적인 길이 확인
+            Log.e("ChatFragment", "토큰이 유효하지 않습니다.")
+            handleInvalidToken()
+        } else {
+            Log.d("ChatFragment", "토큰이 유효합니다.")
+        }
     }
 
     /**
@@ -213,22 +150,165 @@ class ChatFragment : Fragment() {
     }
 
     /**
-     * UI 업데이트: 채팅 목록에 사용자와 서버 메시지 추가
+     * 채팅 내역 불러오기
      */
-    private fun updateChatUi(userChat: ChatItem, serverChat: ChatItem) {
-        chatList.add(userChat)
-        chatList.add(serverChat)
-        chatAdapter.notifyItemRangeInserted(chatList.size - 2, 2)
-        binding.chatRecyclerView.scrollToPosition(chatList.size - 1)
+    private fun loadChatHistory() {
+        val token = getAccessToken() ?: return
+
+        chatApi.getChatHistory("Bearer $token").enqueue(object : Callback<ChatHistoryResponse> {
+            override fun onResponse(call: Call<ChatHistoryResponse>, response: Response<ChatHistoryResponse>) {
+                if (response.isSuccessful) {
+                    response.body()?.data?.let { history ->
+                        chatList.clear()
+
+                        // 초기 환영 메시지를 추가
+                        addInitialMessage()
+
+                        // 서버로부터 받은 채팅 내역 추가
+                        history.forEach { chat ->
+                            val sender = if (chat.status == "REQUEST") "user" else "server"
+                            chatList.add(
+                                ChatItem(
+                                    message = chat.message,
+                                    sender = sender,
+                                    time = chat.createdAt ?: "시간 없음",
+                                    keywords = chat.keywordResponses
+                                )
+                            )
+                        }
+                        chatAdapter.notifyDataSetChanged()
+
+                        // 마지막 메시지로 스크롤
+                        binding.chatRecyclerView.post {
+                            binding.chatRecyclerView.scrollToPosition(chatList.size - 1)
+                        }
+                    }
+                } else {
+                    Log.e("ChatFragment", "채팅 내역 로드 실패: ${response.message()}")
+                }
+            }
+
+            override fun onFailure(call: Call<ChatHistoryResponse>, t: Throwable) {
+                Log.e("ChatFragment", "채팅 내역 로드 중 오류 발생", t)
+            }
+        })
     }
 
     /**
-     * 채팅 현재 시간 구현
+     * 초기 환영 메시지 추가
      */
+    private fun addInitialMessage() {
+        val initialMessage = ChatItem(
+            message = "굿파트너를 이용해 주시는 의뢰인님,\n\n법률 안내를 도와드리는 챗봇 버비입니다.\n\n원하시는 법률 질문을 해 주시면 의뢰인님의 질문에 답변드리겠습니다.\n\n구체적으로 작성해 주실수록 더욱 의뢰인님께 적절한 법률 안내를 해 드릴 수 있다는 점 참고 부탁드립니다.",
+            sender = "server",
+            time = SimpleDateFormat("a hh:mm", Locale.getDefault()).format(Date()),
+            keywords = null
+        )
+
+        // 초기 메시지를 채팅 리스트의 상단에 추가
+        chatList.add(0, initialMessage)
+    }
+
+    /**
+     * 메시지 전송 버튼 클릭 리스너
+     */
+    private fun setupSendButton() {
+        binding.sendButton.setOnClickListener {
+            val message = binding.messageInput.text.toString().trim()
+            if (message.isEmpty()) {
+                Toast.makeText(requireContext(), "메시지를 입력하세요", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            sendMessage(message)
+        }
+    }
+
+    /**
+     * 서버로 메시지 전송
+     */
+    private fun sendMessage(message: String) {
+        val token = getAccessToken() ?: return
+
+        // 사용자 메시지 추가
+        val userChat = ChatItem(
+            message = message,
+            sender = "user",
+            time = SimpleDateFormat("a hh:mm", Locale.getDefault()).format(Date())
+        )
+        chatList.add(userChat)
+        chatAdapter.notifyItemInserted(chatList.size - 1)
+        binding.chatRecyclerView.scrollToPosition(chatList.size - 1)
+
+        // 로딩 메시지 추가
+        val loadingPosition = chatList.size
+        val loadingChat = ChatItem(
+            message = "...",
+            sender = "server",
+            time = SimpleDateFormat("a hh:mm", Locale.getDefault()).format(Date())
+        )
+        chatList.add(loadingChat)
+        chatAdapter.notifyItemInserted(loadingPosition)
+        binding.chatRecyclerView.scrollToPosition(loadingPosition)
+
+        val request = ChatRequest(message)
+        chatApi.postChatMessage("Bearer $token", request).enqueue(object : Callback<ChatApiResponse> {
+            override fun onResponse(call: Call<ChatApiResponse>, response: Response<ChatApiResponse>) {
+
+                // 로딩 메시지 제거
+                chatList.removeAt(loadingPosition)
+                chatAdapter.notifyItemRemoved(loadingPosition)
+
+                if (response.isSuccessful) {
+                    val chatResponse = response.body()?.data
+                    Log.d("ChatFragment", "서버 응답 성공: $chatResponse")
+                    if (chatResponse != null) {
+                        currentChatId = chatResponse.chatId // 새로운 chatId 저장
+                        Log.d("ChatFragment", "새로운 chatId: $currentChatId")
+
+                        val userChat = ChatItem(
+                            message = message,
+                            sender = "user",
+                            time = chatResponse.createdAt ?: "시간 없음",
+                            keywords = null
+                        )
+                        val serverChat = ChatItem(
+                            message = chatResponse.message,
+                            sender = "server",
+                            time = chatResponse.createdAt ?: "시간 없음",
+                            keywords = chatResponse.keywordResponses
+                        )
+
+                        updateChatUi(userChat, serverChat)
+
+                        // 채팅입력후 edittext 내용 지우기
+                        binding.messageInput.text.clear()
+
+                        // 키보드 닫기
+                        hideKeyboard()
+                    }
+                }  else if (response.code() == 401) {
+                    // 401 응답: 토큰이 유효하지 않은 경우 처리
+                    Log.e("ChatFragment", "토큰이 유효하지 않습니다. 자동 로그아웃 처리.")
+                    handleInvalidToken()
+                } else {
+                    Log.e("ChatFragment", "메시지 전송 실패: 코드=${response.code()}, 메시지=${response.message()}")
+                }
+            }
+
+            override fun onFailure(call: Call<ChatApiResponse>, t: Throwable) {
+                // 로딩 메시지 제거
+                chatList.removeAt(loadingPosition)
+                chatAdapter.notifyItemRemoved(loadingPosition)
+
+                Log.e("ChatFragment", "메시지 전송 중 오류 발생", t)
+            }
+        })
+    }
+
     private fun formatDateTime(isoDateTime: String): String {
         return try {
             val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault())
-            inputFormat.timeZone = TimeZone.getTimeZone("UTC-9:00") // 서버 시간이 UTC라면 설정
+            inputFormat.timeZone = TimeZone.getTimeZone("UTC")
 
             val date = inputFormat.parse(isoDateTime)
 
@@ -242,6 +322,25 @@ class ChatFragment : Fragment() {
     }
 
     /**
+     * UI 업데이트: 채팅 목록에 사용자와 서버 메시지 추가
+     */
+    private fun updateChatUi(userChat: ChatItem, serverChat: ChatItem) {
+        chatList.add(userChat)
+        chatList.add(serverChat)
+        chatAdapter.notifyItemRangeInserted(chatList.size - 2, 2)
+        binding.chatRecyclerView.scrollToPosition(chatList.size - 1)
+    }
+
+    /**
+     * 채팅 보낸 후 키보드 창 내리기
+     */
+    private fun hideKeyboard() {
+        val imm = requireContext().getSystemService(AppCompatActivity.INPUT_METHOD_SERVICE) as InputMethodManager
+        imm.hideSoftInputFromWindow(binding.messageInput.windowToken, 0)
+    }
+
+
+    /**
      * SharedPreferences에서 Access Token 가져오기
      */
     private fun getAccessToken(): String? {
@@ -249,9 +348,46 @@ class ChatFragment : Fragment() {
         return sharedPreferences.getString("accessToken", null)
     }
 
+
     /**
-     * Fragment 종료 시 View Binding 해제
+     * 최근 질문 3개 조회후 채팅방 이동
      */
+    private fun loadChatById(chatId: Long) {
+        val token = getAccessToken() ?: return
+
+        chatApi.getChatHistory("Bearer $token").enqueue(object : Callback<ChatHistoryResponse> {
+            override fun onResponse(call: Call<ChatHistoryResponse>, response: Response<ChatHistoryResponse>) {
+                if (response.isSuccessful) {
+                    response.body()?.data?.let { history ->
+                        val targetChat = history.find { it.chatId == chatId }
+                        if (targetChat != null) {
+                            // 채팅 UI 업데이트
+                            updateChatUi(targetChat)
+                        }
+                    }
+                }
+            }
+
+            override fun onFailure(call: Call<ChatHistoryResponse>, t: Throwable) {
+                Log.e("ChatFragment", "채팅 데이터 로드 실패", t)
+            }
+        })
+    }
+
+    private fun updateChatUi(chat: ChatResponse) {
+        // 선택한 chatId에 해당하는 메시지를 UI에 표시
+        chatList.add(
+            ChatItem(
+                message = chat.message,
+                sender = if (chat.status == "REQUEST") "user" else "server",
+                time = chat.createdAt ?: "시간 없음",
+                keywords = chat.keywordResponses
+            )
+        )
+        chatAdapter.notifyDataSetChanged()
+    }
+
+
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
