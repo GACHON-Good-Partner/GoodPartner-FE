@@ -82,7 +82,7 @@ class ChatFragment : Fragment() {
      * RecyclerView 초기화
      */
     private fun setupRecyclerView() {
-        chatAdapter = ChatAdapter(chatList, :: formatDateTime)
+        chatAdapter = ChatAdapter(chatList, :: formatServerTimeToLocalTime)
         binding.chatRecyclerView.apply {
             adapter = chatAdapter
             layoutManager = LinearLayoutManager(context)
@@ -171,17 +171,14 @@ class ChatFragment : Fragment() {
                                 ChatItem(
                                     message = chat.message,
                                     sender = sender,
-                                    time = chat.createdAt ?: "시간 없음",
+                                    time = formatServerTimeToLocalTime(chat.createdAt ?: "시간 없음"),
                                     keywords = chat.keywordResponses
                                 )
                             )
                         }
                         chatAdapter.notifyDataSetChanged()
 
-                        // 마지막 메시지로 스크롤
-                        binding.chatRecyclerView.post {
-                            binding.chatRecyclerView.scrollToPosition(chatList.size - 1)
-                        }
+
                     }
                 } else {
                     Log.e("ChatFragment", "채팅 내역 로드 실패: ${response.message()}")
@@ -265,16 +262,16 @@ class ChatFragment : Fragment() {
                         currentChatId = chatResponse.chatId // 새로운 chatId 저장
                         Log.d("ChatFragment", "새로운 chatId: $currentChatId")
 
-                        val userChat = ChatItem(
-                            message = message,
-                            sender = "user",
-                            time = chatResponse.createdAt ?: "시간 없음",
-                            keywords = null
-                        )
+//                        val userChat = ChatItem(
+//                            message = message,
+//                            sender = "user",
+//                            time = chatResponse.createdAt ?: "시간 없음",
+//                            keywords = null
+//                        )
                         val serverChat = ChatItem(
                             message = chatResponse.message,
                             sender = "server",
-                            time = chatResponse.createdAt ?: "시간 없음",
+                            time = formatServerTimeToLocalTime(chatResponse.createdAt ?: "시간 없음") ,
                             keywords = chatResponse.keywordResponses
                         )
 
@@ -302,22 +299,35 @@ class ChatFragment : Fragment() {
 
                 Log.e("ChatFragment", "메시지 전송 중 오류 발생", t)
             }
+
         })
+
+        // 마지막 메시지로 스크롤
+        binding.chatRecyclerView.post {
+            binding.chatRecyclerView.scrollToPosition(chatList.size - 1)
+        }
     }
 
-    private fun formatDateTime(isoDateTime: String): String {
+    /**
+     * 서버에서 받아온 시간 형식변환
+     */
+    private fun formatServerTimeToLocalTime(serverTime: String): String {
         return try {
-            val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault())
-            inputFormat.timeZone = TimeZone.getTimeZone("UTC")
+            // 서버 시간 형식 (ISO 8601 기준 예제)
+            val serverFormatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault())
 
-            val date = inputFormat.parse(isoDateTime)
+            // 서버 시간 파싱
+            val date = serverFormatter.parse(serverTime)
 
-            // 출력 포맷 설정 (오전/오후 포함)
-            val outputFormat = SimpleDateFormat("a hh:mm", Locale.getDefault())
-            outputFormat.timeZone = TimeZone.getDefault() // 로컬 시간대로 설정
-            outputFormat.format(date!!)
+            // 로컬 시간 형식
+            val localFormatter = SimpleDateFormat("a hh:mm", Locale.getDefault()) // "오후 04:47" 형식
+            localFormatter.timeZone = TimeZone.getDefault() // 로컬 시간대 적용
+
+            // 변환된 시간 반환
+            localFormatter.format(date!!)
         } catch (e: Exception) {
-            isoDateTime // 실패 시 원본 반환
+            // 파싱 실패 시 서버 시간 그대로 반환
+            serverTime
         }
     }
 
@@ -325,7 +335,7 @@ class ChatFragment : Fragment() {
      * UI 업데이트: 채팅 목록에 사용자와 서버 메시지 추가
      */
     private fun updateChatUi(userChat: ChatItem, serverChat: ChatItem) {
-        chatList.add(userChat)
+//        chatList.add(userChat)
         chatList.add(serverChat)
         chatAdapter.notifyItemRangeInserted(chatList.size - 2, 2)
         binding.chatRecyclerView.scrollToPosition(chatList.size - 1)
