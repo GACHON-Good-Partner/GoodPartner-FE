@@ -21,5 +21,15 @@
         android:id="@+id/navigation_mypage"
         android:name="com.example.goodpartner.ui.MyPage.MyPageFragment"
         android:label="@string/title_notifications"
-        tools:layout="@layout/fragment_mypage" />
+        tools:layout="@layout/fragment_mypage">
+
+        <action
+            android:id="@+id/action_myPageFragment_to_myPageUDFragment"
+            app:destination="@id/myPageUDFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/myPageUDFragment"
+        android:name="com.example.goodpartner.ui.MyPage.MyPageUDFragment"
+        tools:layout="@layout/fragment_mypage_update" />
 </navigation>

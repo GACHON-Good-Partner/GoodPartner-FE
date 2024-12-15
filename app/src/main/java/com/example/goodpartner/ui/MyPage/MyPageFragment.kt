@@ -9,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.ImageButton
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.goodpartner.R
 import com.example.goodpartner.databinding.FragmentMypageBinding
@@ -42,8 +43,9 @@ class MyPageFragment : Fragment() {
         // 최근 질문 로드
         fetchRecentQuestions()
 
+        // 수정 버튼 클릭 이벤트
         binding.btnProfileChange.setOnClickListener {
-            navigateToMyPageUDFragment()
+            findNavController().navigate(R.id.action_myPageFragment_to_myPageUDFragment)
         }
 
 
@@ -53,13 +55,9 @@ class MyPageFragment : Fragment() {
     }
 
     private fun navigateToMyPageUDFragment() {
-        // MyPageUDFragment로 이동
-        val fragment = MyPageUDFragment()
-        requireActivity().supportFragmentManager.beginTransaction()
-            .replace(R.id.nav_host_fragment_activity_main, fragment) // activity_main.xml에서 FragmentContainerView의 ID
-            .addToBackStack(null) // 뒤로 가기를 통해 이전 화면으로 돌아갈 수 있도록 설정
-            .commit()
+        findNavController().navigate(R.id.action_myPageFragment_to_myPageUDFragment)
     }
+
 
     /**
      * 사용자 정보를 백엔드에서 조회하여 UI에 반영하는 메서드

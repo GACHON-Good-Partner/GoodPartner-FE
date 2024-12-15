@@ -107,6 +107,8 @@ class MyPageUDFragment : Fragment() {
                             binding.emailInput.setText(originalEmail)
                             binding.phoneInput.setText(originalPhone)
                         }
+
+
                     } catch (e: Exception) {
                         Log.e("MyPageUDFragment", "응답 파싱 실패: ${e.localizedMessage}")
                     }
@@ -171,6 +173,7 @@ class MyPageUDFragment : Fragment() {
                         requireActivity().runOnUiThread {
                             Toast.makeText(requireContext(), message, Toast.LENGTH_SHORT).show()
                             Log.i("MyPageUDFragment", message)
+
                             // 수정 성공 후 MyPageFragment로 이동
                             findNavController().navigateUp()
                         }
@@ -183,6 +186,8 @@ class MyPageUDFragment : Fragment() {
             }
         })
     }
+
+
 
     private fun hideKeyboard() {
         val imm = requireActivity().getSystemService(Context.INPUT_METHOD_SERVICE) as InputMethodManager
