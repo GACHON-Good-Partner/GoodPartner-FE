@@ -19,7 +19,7 @@
 
             <LinearLayout
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:gravity="center_horizontal"
                 android:orientation="vertical">
 
@@ -27,9 +27,10 @@
                 <ImageView
                     android:layout_width="64dp"
                     android:layout_height="64dp"
-                    android:layout_marginTop="100dp"
+                    android:layout_marginTop="20dp"
+                    android:layout_marginStart="-155dp"
                     android:layout_marginBottom="50dp"
-                    android:src="@drawable/chat_logo_big" />
+                    android:src="@drawable/chat_logo" />
 
                 <!-- 상단 텍스트 -->
                 <TextView
@@ -76,30 +77,113 @@
 
                 </LinearLayout>
 
-                <!-- 하단 텍스트 섹션 -->
                 <TextView
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
                     android:gravity="center"
-                    android:text="어떻게 활용할 수 있나요?"
-                    android:textColor="@android:color/black"
-                    android:textSize="18sp"
-                    android:textStyle="bold" />
+                    android:text="법률적인 궁금함을 바로 해결하세요"
+                    android:textStyle="bold"
+                    android:textColor="@color/black"
+                    android:textSize="20sp"/>
 
                 <TextView
                     android:id="@+id/question_Count_TextView"
-                    android:layout_width="wrap_content"
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:text="누적 질문 수: 0"
+                    android:layout_marginTop="5dp"
+                    android:gravity="center"
+                    android:text="현재 누적 질문 수 : 0"
                     android:textSize="16sp"
-                    android:textColor="@color/black"
-                    app:layout_constraintTop_toBottomOf="@id/top_bar"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintEnd_toEndOf="parent" />
+                    android:textColor="@color/black" />
 
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:padding="5dp"
+                    android:layout_marginStart="15dp"
+                    android:layout_marginEnd="15dp"
+                    android:layout_marginTop="15dp"
+                    android:layout_marginBottom="80dp"
+                    android:background="@drawable/home_background"
+                    android:orientation="vertical">
 
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginTop="10dp"
+                        android:textSize="17dp"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:text="궁금한 것을 질문하세요!"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginTop="15dp"
+                        android:textSize="10dp"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:text="[ 상속분쟁이 발생할 경우 어떻게 해결하나요? ]"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:textSize="10dp"
+                        android:textColor="@color/black"
+                        android:text="학습된 ai를 통해 질문자의 문맥과 의도를 파악해 원하는 답변을 줍니다!"/>
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="-20dp"
+                            android:src="@drawable/test_chat1"
+                            />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginTop="10dp"
+                        android:textSize="17dp"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:text="상황을 설명하세요!"/>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:layout_marginTop="15dp"
+                        android:textSize="10dp"
+                        android:textStyle="bold"
+                        android:textColor="@color/black"
+                        android:text="[ 차를 주차해놨는데 누가 차를 치고 도망간 것 같습니다. 이럴 땐 어떻게 해야하나요? ]"/>
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="10dp"
+                        android:textSize="10dp"
+                        android:textColor="@color/black"
+                        android:text="특정 상황을 얘기하면 그 상황에 맞는 답변과 질문에 도움이 될 키워드(링크)를 줍니다!"/>
+
+                        <ImageView
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:layout_marginTop="-20dp"
+                            android:src="@drawable/test_chat1"/>
+
+                    <TextView
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:text="그럼 바로 시작해보세요!\n"
+                        android:gravity="center"
+                        android:textSize="20sp"
+                        android:textColor="@color/black"
+                        android:textStyle="bold"/>
+
+                </LinearLayout>
             </LinearLayout>
         </ScrollView>
 

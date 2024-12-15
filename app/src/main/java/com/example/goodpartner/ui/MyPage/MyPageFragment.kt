@@ -17,6 +17,9 @@ import com.example.goodpartner.ui.dashboard.ChatResponse
 import okhttp3.*
 import org.json.JSONObject
 import java.io.IOException
+import java.text.SimpleDateFormat
+import java.util.Locale
+import java.util.TimeZone
 import java.util.concurrent.TimeUnit
 
 class MyPageFragment : Fragment() {
@@ -202,7 +205,7 @@ class MyPageFragment : Fragment() {
                                         userId = item.optString("userId"),
                                         message = item.optString("message"),
                                         status = item.optString("status"),
-                                        createdAt = item.optString("createdAt"),
+                                        createdAt = formatServerTimeToLocalTime(item.optString("createdAt") ?:"시간없음"),
                                         updatedAt = item.optString("updatedAt"),
                                         keywordResponses = null // 키워드 응답 없음
                                     )
@@ -260,6 +263,29 @@ class MyPageFragment : Fragment() {
             .commit()
     }
 
+
+    /**
+     * 서버에서 받아온 시간 형식변환
+     */
+    private fun formatServerTimeToLocalTime(serverTime: String): String {
+        return try {
+            // 서버 시간 형식 (ISO 8601 기준 예제)
+            val serverFormatter = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault())
+
+            // 서버 시간 파싱
+            val date = serverFormatter.parse(serverTime)
+
+            // 로컬 시간 형식
+            val localFormatter = SimpleDateFormat("a hh:mm", Locale.getDefault()) // "오후 04:47" 형식
+            localFormatter.timeZone = TimeZone.getDefault() // 로컬 시간대 적용
+
+            // 변환된 시간 반환
+            localFormatter.format(date!!)
+        } catch (e: Exception) {
+            // 파싱 실패 시 서버 시간 그대로 반환
+            serverTime
+        }
+    }
 
 
     /**

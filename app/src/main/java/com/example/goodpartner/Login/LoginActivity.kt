@@ -34,7 +34,6 @@ class LoginActivity : AppCompatActivity() {
         supportActionBar?.hide()
 
         val kakaoLoginButton = findViewById<ImageButton>(R.id.kakao_login_button)
-        val kakaoLogoutButton = findViewById<ImageButton>(R.id.kakao_logout_button)
 
 
         kakaoLoginButton.setOnClickListener {
@@ -66,26 +65,6 @@ class LoginActivity : AppCompatActivity() {
                         Log.i("LoginActivity", "카카오 계정 로그인 성공: ${token.accessToken}")
                         sendAuthCodeToBackend(token.accessToken)
                     }
-                }
-            }
-        }
-
-        kakaoLogoutButton.setOnClickListener {
-            // 카카오 로그아웃 처리
-            UserApiClient.instance.logout { error ->
-                if (error != null) {
-                    Log.e("LoginActivity", "카카오 로그아웃 실패", error)
-                    Toast.makeText(this, "카카오 로그아웃에 실패했습니다. 다시 시도해주세요.", Toast.LENGTH_SHORT).show()
-                } else {
-                    Log.i("LoginActivity", "카카오 로그아웃 성공")
-
-                    // SharedPreferences에서 토큰 삭제
-                    clearAccessToken()
-
-                    Toast.makeText(this, "로그아웃 되었습니다.", Toast.LENGTH_SHORT).show()
-
-                    // 필요하면 로그인 화면으로 이동
-                    moveToLoginScreen()
                 }
             }
         }

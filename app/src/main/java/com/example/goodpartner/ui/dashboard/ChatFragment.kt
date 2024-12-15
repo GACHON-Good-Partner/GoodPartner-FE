@@ -178,6 +178,11 @@ class ChatFragment : Fragment() {
                         }
                         chatAdapter.notifyDataSetChanged()
 
+                        // 마지막 메시지로 스크롤
+                        binding.chatRecyclerView.post {
+                            binding.chatRecyclerView.scrollToPosition(chatList.size - 1)
+                        }
+
 
                     }
                 } else {
@@ -233,27 +238,34 @@ class ChatFragment : Fragment() {
             time = SimpleDateFormat("a hh:mm", Locale.getDefault()).format(Date())
         )
         chatList.add(userChat)
-        chatAdapter.notifyItemInserted(chatList.size - 1)
-        binding.chatRecyclerView.scrollToPosition(chatList.size - 1)
+        binding.chatRecyclerView.post {
+            chatAdapter.notifyItemInserted(chatList.size - 1)
+            binding.chatRecyclerView.scrollToPosition(chatList.size - 1)
+        }
 
         // 로딩 메시지 추가
-        val loadingPosition = chatList.size
         val loadingChat = ChatItem(
             message = "...",
             sender = "server",
             time = SimpleDateFormat("a hh:mm", Locale.getDefault()).format(Date())
         )
+        val loadingPosition = chatList.size
         chatList.add(loadingChat)
-        chatAdapter.notifyItemInserted(loadingPosition)
-        binding.chatRecyclerView.scrollToPosition(loadingPosition)
+        binding.chatRecyclerView.post {
+            chatAdapter.notifyItemInserted(loadingPosition)
+            binding.chatRecyclerView.scrollToPosition(loadingPosition)
+        }
 
+        //서버요청
         val request = ChatRequest(message)
         chatApi.postChatMessage("Bearer $token", request).enqueue(object : Callback<ChatApiResponse> {
             override fun onResponse(call: Call<ChatApiResponse>, response: Response<ChatApiResponse>) {
 
                 // 로딩 메시지 제거
                 chatList.removeAt(loadingPosition)
-                chatAdapter.notifyItemRemoved(loadingPosition)
+                binding.chatRecyclerView.post {
+                    chatAdapter.notifyItemRemoved(loadingPosition)
+                }
 
                 if (response.isSuccessful) {
                     val chatResponse = response.body()?.data
@@ -261,21 +273,17 @@ class ChatFragment : Fragment() {
                     if (chatResponse != null) {
                         currentChatId = chatResponse.chatId // 새로운 chatId 저장
                         Log.d("ChatFragment", "새로운 chatId: $currentChatId")
-
-//                        val userChat = ChatItem(
-//                            message = message,
-//                            sender = "user",
-//                            time = chatResponse.createdAt ?: "시간 없음",
-//                            keywords = null
-//                        )
                         val serverChat = ChatItem(
                             message = chatResponse.message,
                             sender = "server",
-                            time = formatServerTimeToLocalTime(chatResponse.createdAt ?: "시간 없음") ,
+                            time = formatServerTimeToLocalTime(chatResponse.createdAt ?: "시간 없음"),
                             keywords = chatResponse.keywordResponses
                         )
-
-                        updateChatUi(userChat, serverChat)
+                        chatList.add(serverChat)
+                        binding.chatRecyclerView.post {
+                            chatAdapter.notifyItemInserted(chatList.size - 1)
+                            binding.chatRecyclerView.scrollToPosition(chatList.size - 1)
+                        }
 
                         // 채팅입력후 edittext 내용 지우기
                         binding.messageInput.text.clear()
@@ -295,8 +303,9 @@ class ChatFragment : Fragment() {
             override fun onFailure(call: Call<ChatApiResponse>, t: Throwable) {
                 // 로딩 메시지 제거
                 chatList.removeAt(loadingPosition)
-                chatAdapter.notifyItemRemoved(loadingPosition)
-
+                binding.chatRecyclerView.post {
+                    chatAdapter.notifyItemRemoved(loadingPosition)
+                }
                 Log.e("ChatFragment", "메시지 전송 중 오류 발생", t)
             }
 
@@ -334,7 +343,7 @@ class ChatFragment : Fragment() {
     /**
      * UI 업데이트: 채팅 목록에 사용자와 서버 메시지 추가
      */
-    private fun updateChatUi(userChat: ChatItem, serverChat: ChatItem) {
+    private fun updateChatUi(serverChat: ChatItem) {
 //        chatList.add(userChat)
         chatList.add(serverChat)
         chatAdapter.notifyItemRangeInserted(chatList.size - 2, 2)
