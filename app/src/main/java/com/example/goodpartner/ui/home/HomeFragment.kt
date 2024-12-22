@@ -1,14 +1,17 @@
 package com.example.goodpartner.ui.home
 
+import android.content.Intent
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import com.example.goodpartner.Login.LoginActivity
 import com.example.goodpartner.databinding.FragmentHomeBinding
 import com.example.goodpartner.ui.dashboard.ChatApiService
 import com.example.goodpartner.ui.dashboard.QuestionCountResponse
@@ -66,6 +69,9 @@ class HomeFragment : Fragment() {
                     }
                 } else {
                     Log.e("HomeFragment", "누적 질문 수 조회 실패: ${response.errorBody()?.string()}")
+                    // 401 응답: 토큰이 유효하지 않은 경우 처리
+                    Log.e("ChatFragment", "토큰이 유효하지 않습니다. 자동 로그아웃 처리.")
+                    handleInvalidToken()
                 }
             }
 
@@ -73,6 +79,24 @@ class HomeFragment : Fragment() {
                 Log.e("HomeFragment", "누적 질문 수 조회 중 오류 발생", t)
             }
         })
+    }
+
+    /**
+     * 유효하지 않은 토큰 처리: SharedPreferences에서 제거 후 LoginActivity로 이동
+     */
+    private fun handleInvalidToken() {
+        Toast.makeText(requireContext(), "토큰이 유효하지 않습니다. 다시 로그인해주세요.", Toast.LENGTH_SHORT).show()
+
+        // SharedPreferences에서 토큰 제거
+        val sharedPreferences = requireActivity().getSharedPreferences("AppPreferences", AppCompatActivity.MODE_PRIVATE)
+        val editor = sharedPreferences.edit()
+        editor.remove("accessToken")
+        editor.apply()
+
+        // LoginActivity로 이동
+        val intent = Intent(requireContext(), LoginActivity::class.java)
+        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+        startActivity(intent)
     }
 
     private fun updateQuestionCountUI(count: Int) {

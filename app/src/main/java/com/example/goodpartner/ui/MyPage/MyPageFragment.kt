@@ -248,6 +248,7 @@ class MyPageFragment : Fragment() {
         })
     }
 
+
     private fun navigateToChatFragment(chatId: Long) {
         val fragment = ChatFragment().apply {
             arguments = Bundle().apply {
